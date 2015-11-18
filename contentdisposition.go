@@ -15,34 +15,34 @@ import (
 // -- DispType is the display type
 // -- Params is slice of parameters
 type ContentDisposition struct {
-    Val		string
-    DispType	string
-    Params	[]*Param
+	Val      string
+	DispType string
+	Params   []*Param
 }
 
 func (c *ContentDisposition) addParam(s string) {
-    if s == "" {
-	return
-    }
-    if c.Params == nil {
-	c.Params = []*Param{getParam(s),}
-	return
-    }
-    c.Params = append(c.Params, getParam(s))
+	if s == "" {
+		return
+	}
+	if c.Params == nil {
+		c.Params = []*Param{getParam(s)}
+		return
+	}
+	c.Params = append(c.Params, getParam(s))
 }
 
 func (c *ContentDisposition) parse() {
-    charPos := strings.IndexRune(c.Val, ';')
-    if charPos == -1 {
-	c.DispType = c.Val
-	return
-    }
-    c.DispType = c.Val[0:charPos]
-    if len(c.Val) - 1 > charPos {
-	params := strings.Split(c.Val[charPos + 1:], ";")
-	for i := range params {
-	    c.addParam(params[i])
+	charPos := strings.IndexRune(c.Val, ';')
+	if charPos == -1 {
+		c.DispType = c.Val
+		return
 	}
-    }
-    return	
+	c.DispType = c.Val[0:charPos]
+	if len(c.Val)-1 > charPos {
+		params := strings.Split(c.Val[charPos+1:], ";")
+		for i := range params {
+			c.addParam(params[i])
+		}
+	}
+	return
 }

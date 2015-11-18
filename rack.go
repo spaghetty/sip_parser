@@ -16,29 +16,29 @@ import (
 // -- CseqVal is the cseq value from the rack hdr
 // -- CseqMethod is the method from the cseq hdr
 type Rack struct {
-    Val		string
-    RseqVal	string
-    CseqVal	string
-    CseqMethod	string
-}  
+	Val        string
+	RseqVal    string
+	CseqVal    string
+	CseqMethod string
+}
 
 // parse parses the .Val of the Rack struct
 func (r *Rack) parse() error {
-    r.Val = cleanWs(r.Val)
-    pos := make([]int, 0)
-    for i := range r.Val {
-	if r.Val[i] == ' ' {
-	    pos = append(pos, i)
+	r.Val = cleanWs(r.Val)
+	pos := make([]int, 0)
+	for i := range r.Val {
+		if r.Val[i] == ' ' {
+			pos = append(pos, i)
+		}
 	}
-    }
-    if len(pos) != 2 {
-	return errors.New("Rack.parse err: could not locate two LWS.")
-    }
-    r.RseqVal = r.Val[0:pos[0]]
-    r.CseqVal = r.Val[pos[0] + 1:pos[1]]
-    if len(r.Val) - 1 > pos[1] {
-	r.CseqMethod = r.Val[pos[1] + 1:]
-	return nil
-    }
-    return errors.New("Rack.parse err: value of RAck ends in LWS.")
+	if len(pos) != 2 {
+		return errors.New("Rack.parse err: could not locate two LWS.")
+	}
+	r.RseqVal = r.Val[0:pos[0]]
+	r.CseqVal = r.Val[pos[0]+1 : pos[1]]
+	if len(r.Val)-1 > pos[1] {
+		r.CseqMethod = r.Val[pos[1]+1:]
+		return nil
+	}
+	return errors.New("Rack.parse err: value of RAck ends in LWS.")
 }

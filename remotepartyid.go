@@ -9,103 +9,103 @@ import (
 	"errors"
 )
 
-type parseRpidStateFn func(r *RemotePartyId) parseRpidStateFn 
+type parseRpidStateFn func(r *RemotePartyId) parseRpidStateFn
 
 type RemotePartyId struct {
-    Error	error
-    Val		string
-    Name	string
-    URI		*URI
-    Party	string
-    Screen	string
-    Privacy	string
-    Params	[]*Param
+	Error   error
+	Val     string
+	Name    string
+	URI     *URI
+	Party   string
+	Screen  string
+	Privacy string
+	Params  []*Param
 }
 
 func (r *RemotePartyId) addParam(s string) {
-    p := getParam(s)
-    switch {
+	p := getParam(s)
+	switch {
 	case p.Param == "screen":
-	    r.Screen = p.Val
+		r.Screen = p.Val
 	case p.Param == "party":
-	    r.Party = p.Val
+		r.Party = p.Val
 	case p.Param == "privacy":
-	    r.Party = p.Val
+		r.Party = p.Val
 	default:
-	    switch {
+		switch {
 		case r.Params == nil:
-		    r.Params = []*Param{p,}
+			r.Params = []*Param{p}
 		default:
-		    r.Params = append(r.Params, p)
-	    }
-    }
+			r.Params = append(r.Params, p)
+		}
+	}
 }
 
 func (r *RemotePartyId) parse() {
-    for state := parseRpid; state != nil; {
-	state = state(r)
-    }
+	for state := parseRpid; state != nil; {
+		state = state(r)
+	}
 }
 
 func parseRpid(r *RemotePartyId) parseRpidStateFn {
-    if r.Error != nil {
-	return nil
-    }
-    r.Name, _ = getName(r.Val)
-    return parseRpidGetUri 
+	if r.Error != nil {
+		return nil
+	}
+	r.Name, _ = getName(r.Val)
+	return parseRpidGetUri
 }
 
 func parseRpidGetUri(r *RemotePartyId) parseRpidStateFn {
-    left := 0
-    right := 0
-    for i := range r.Val {
-	if r.Val[i] == '<' && left == 0 {
-	    left = i
+	left := 0
+	right := 0
+	for i := range r.Val {
+		if r.Val[i] == '<' && left == 0 {
+			left = i
+		}
+		if r.Val[i] == '>' && right == 0 {
+			right = i
+		}
 	}
-	if r.Val[i] == '>' && right == 0 {
-	    right = i
+	if left < right {
+		r.URI = ParseURI(r.Val[left+1 : right])
+		if r.URI.Error != nil {
+			r.Error = errors.New("parseRpidGetUri err: received err getting uri: " + r.URI.Error.Error())
+			return nil
+		}
+		return parseRpidGetParams
 	}
-    }
-    if left < right {
-	r.URI = ParseURI(r.Val[left + 1:right])
-	if r.URI.Error != nil {
-	    r.Error = errors.New("parseRpidGetUri err: received err getting uri: " + r.URI.Error.Error())
-	    return nil
-	}
-	return parseRpidGetParams
-    }
-    r.Error = errors.New("parseRpidGetUri err: could not locate bracks.  no uri found.")
-    return nil 
+	r.Error = errors.New("parseRpidGetUri err: could not locate bracks.  no uri found.")
+	return nil
 }
 
 func parseRpidGetParams(r *RemotePartyId) parseRpidStateFn {
-    var pos []int
-    right := 0
-    for i := range r.Val {
-	if r.Val[i] == '>' && right == 0 {
-	    right = i
+	var pos []int
+	right := 0
+	for i := range r.Val {
+		if r.Val[i] == '>' && right == 0 {
+			right = i
+		}
 	}
-    }
-    if len(r.Val) > right + 1 {
-	pos = make([]int, 0)
-	for i := range r.Val[right + 1:] {
-	    if r.Val[right + 1:][i] == ';' {
-		pos = append(pos, i) 
-	    } 
+	if len(r.Val) > right+1 {
+		pos = make([]int, 0)
+		for i := range r.Val[right+1:] {
+			if r.Val[right+1:][i] == ';' {
+				pos = append(pos, i)
+			}
+		}
 	}
-    }
-    if pos == nil {
+	if pos == nil {
+		return nil
+	}
+	for i := range pos {
+		if len(pos)-1 == i {
+			if len(r.Val[right+1:])-1 > pos[i]+1 {
+				r.addParam(r.Val[right+1:][pos[i]+1:])
+			}
+		}
+		if len(pos)-1 > i {
+			r.addParam(r.Val[right+1:][pos[i]+1 : pos[i+1]])
+		}
+	}
 	return nil
-    }
-    for i := range pos {
-	if len(pos) - 1 == i {
-	    if len(r.Val[right + 1:]) - 1 > pos[i] + 1 {
-		r.addParam(r.Val[right +1:][pos[i] + 1:])	
-	    }
-	}
-	if len(pos) - 1 > i {
-	    r.addParam(r.Val[right + 1:][pos[i] + 1:pos[i+1]])
-	}
-    }
-    return nil
 }
