@@ -10,15 +10,15 @@ import (
 )
 
 func TestCseq(t *testing.T) {
-    sm := &SipMsg{}
-    sm.parseCseq("100 INVITE")
-    if sm.Error != nil {
-	t.Errorf("[TestCseq] Error parsing cseq: \"100 INVITE\". Received err: " + sm.Error.Error())
-    }
-    if sm.Cseq.Digit != "100" {
-	t.Errorf("[TestCseq] Error parsing cseq: \"100 INVITE\".  Digit should be 100.")
-    }
-    if sm.Cseq.Method != "INVITE" {
-	t.Errorf("[TestCseq] Error parsing cseq: \"100 INVITE\".  Method should be \"INVITE\".")
-    }
+	sm := &SipMsg{}
+	sm.parseCseq("100 INVITE")
+	if sm.Error != nil {
+		t.Errorf("[TestCseq] Error parsing cseq: \"100 INVITE\". Received err: " + sm.Error.Error())
+	}
+	if sm.Cseq.Digit != "100" {
+		t.Errorf("[TestCseq] Error parsing cseq: \"100 INVITE\".  Digit should be 100.")
+	}
+	if sm.Cseq.Method != "INVITE" {
+		t.Errorf("[TestCseq] Error parsing cseq: \"100 INVITE\".  Method should be \"INVITE\".")
+	}
 }
